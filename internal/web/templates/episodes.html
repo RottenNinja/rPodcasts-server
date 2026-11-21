@@ -1,0 +1,58 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead"><h1>Episodes</h1></div>
+<form method="get" action="/episodes" class="card card-pad filterbar" hx-disinherit="hx-select hx-target hx-swap hx-trigger hx-push-url" hx-get="/episodes" hx-target="#episode-results" hx-select="#episode-results" hx-swap="outerHTML" hx-trigger="submit, change from:select" hx-push-url="true">
+  <div class="tabs quick">
+    <a href="/episodes?quick=all" {{if eq .Q.Quick "all"}}aria-current="page"{{end}}>Every episode</a>
+    <a href="/episodes?quick=unplayed" {{if eq .Q.Quick "unplayed"}}aria-current="page"{{end}}>Unplayed</a>
+    <a href="/episodes?quick=inprogress" {{if eq .Q.Quick "inprogress"}}aria-current="page"{{end}}>In progress</a>
+  </div>
+  <div class="inline">
+    <input name="q" value="{{.Q.Filter}}" class="mono grow" placeholder="Filter, e.g. #tech AND !$played AND $length < 1h" autocomplete="off" spellcheck="false"
+      hx-get="/filter/check" hx-trigger="input changed delay:250ms" hx-target="#filter-check" hx-swap="innerHTML" name="q">
+    <select name="sort" aria-label="Sort">{{$s := .Q.Sort}}{{range .Sorts}}<option value="{{.Key}}" {{if eq .Key $s}}selected{{end}}>{{.Label}}</option>{{end}}</select>
+    <button class="btn-primary">{{template "icon" "search"}}Apply</button>
+  </div>
+  <div id="filter-check" class="filter-check">{{if .Err}}{{template "filtererr" .Err}}{{end}}</div>
+</form>
+{{template "results" .}}
+{{end}}
+{{template "bottom" .}}
+
+{{define "results"}}
+<div id="episode-results">
+<form method="post" action="/episodes/select" id="select-form">
+  <input type="hidden" name="return" value="/episodes{{qs "q" .Q.Filter "sort" .Q.Sort}}">
+  <div class="toolbar">
+    <span class="muted">{{.Total}} episode{{if ne .Total 1}}s{{end}}</span>
+    <span class="grow"></span>
+    <a class="btn btn-sm btn-ghost" href="/playlists/new{{qs "filter" .Q.Filter}}">{{template "icon" "list"}}Save as playlist</a>
+    <label class="check small"><input type="checkbox" data-select-all> Select all shown</label>
+    <select name="action" class="input-sm" aria-label="With selected">
+      <option value="played">Mark played</option><option value="unplayed">Mark unplayed</option><option value="star">Star</option><option value="unstar">Unstar</option>
+      
+    </select>
+    <button class="btn-sm">Apply to selected</button>
+  </div>
+  <ul class="card list eps selectable">
+  {{range .Rows}}<li class="sel"><input type="checkbox" name="id" value="{{.ID}}" aria-label="Select"><ul class="nolist">{{template "eprow" .}}</ul></li>{{else}}<li class="card-foot-empty">{{if .Err}}Fix the filter to see episodes.{{else}}No episodes match.{{end}}</li>{{end}}
+  </ul>
+</form>
+<div class="pager">
+  {{if .Page}}<a class="btn btn-sm" href="/episodes{{qs "q" .Q.Filter "sort" .Q.Sort "page" (itoa (add .Page -1))}}">← Newer</a>{{end}}
+  {{if .HasNext}}<a class="btn btn-sm" href="/episodes{{qs "q" .Q.Filter "sort" .Q.Sort "page" (itoa (add .Page 1))}}">More →</a>{{end}}
+</div>
+</div>
+{{end}}
+
+{{define "filtererr"}}<span class="err-text">{{.Msg}} (at {{add .Pos 1}})</span>{{end}}
+
+{{define "filtercheck"}}{{if .Err}}<div class="err-text">{{.Err.Msg}}</div><pre class="caret">{{.Before}}<mark>{{.At}}</mark>{{.After}}</pre>{{else}}<span class="ok-text">{{template "icon" "check"}} {{.Count}} match{{if ne .Count 1}}es{{end}}</span>{{end}}{{end}}
+
+{{define "options"}}
+<div class="options">
+  <input type="search" placeholder="Search" value="{{.Search}}" name="search" hx-get="/filter/options?key={{.Key}}" hx-trigger="input changed delay:200ms" hx-target="closest .options-box" hx-swap="innerHTML" autofocus>
+  <ul class="nolist">{{range .Options}}<li><button type="button" class="btn-ghost btn-sm" data-insert="{{.}}">{{.}}</button></li>{{else}}<li class="faint small">Nothing found.</li>{{end}}</ul>
+  {{if .More}}<button type="button" class="btn-sm" hx-get="/filter/options?key={{.Key}}&search={{.Search}}&page={{add .Page 1}}" hx-target="closest .options-box" hx-swap="innerHTML">More</button>{{end}}
+</div>
+{{end}}

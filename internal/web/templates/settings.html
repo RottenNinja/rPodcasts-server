@@ -1,0 +1,49 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead"><h1>Settings</h1><div class="actions"><a href="/devices" class="btn btn-sm">{{template "icon" "device"}}Devices</a></div></div>
+<form method="post" action="/settings/prefs" class="card card-pad section narrow">
+  <h2>Listening</h2>
+  <div class="field-row">
+    <label>Time zone<select name="time_zone">{{$z := .P.TimeZone}}{{range .Zones}}<option {{if eq . $z}}selected{{end}}>{{.}}</option>{{end}}</select><small>Dates in filters use it.</small></label>
+    <label>Theme<select name="theme">{{$t := .P.Theme}}<option value="system" {{if eq $t "system"}}selected{{end}}>System</option><option value="light" {{if eq $t "light"}}selected{{end}}>Light</option><option value="dark" {{if eq $t "dark"}}selected{{end}}>Dark</option></select></label>
+  </div>
+  <div class="field-row">
+    <label>Skip back (s)<input type="number" name="skip_back" min="1" max="300" value="{{.P.SkipBack}}"></label>
+    <label>Skip forward (s)<input type="number" name="skip_forward" min="1" max="300" value="{{.P.SkipForward}}"></label>
+    <label>Offer Next in the last (%)<input type="number" name="next_at" min="1" max="50" value="{{.P.NextAt}}"><small>In a playlist, a button to mark the episode played and start the next one.</small></label>
+  </div>
+  <label class="check"><input type="checkbox" name="remember_speed" value="1" {{if .P.RememberSpeed}}checked{{end}}><input type="hidden" name="remember_speed" value="0">Remember speed for each podcast<small>In the app, changing the speed while an episode plays saves it as that podcast's speed, on every device.</small></label>
+  <div class="actions end"><button class="btn-primary btn-sm">Save</button></div>
+</form>
+<form method="post" action="/settings/server" class="card card-pad section narrow" id="server">
+  <h2>Server</h2>
+  <p class="muted small">Defaults for every podcast that leaves a setting empty.{{if .Locked}} They are locked on this server.{{end}}</p>
+  <fieldset class="plain" {{if .Locked}}disabled{{end}}>
+  <div class="field-row">
+    <label>Check every (min)<input type="number" name="check_every" min="15" max="10080" required value="{{.S.CheckEvery}}"></label>
+    <label>How many to fetch on each refresh<input type="number" name="fetch_count" min="1" max="1000" value="{{if .S.FetchCount}}{{.S.FetchCount}}{{end}}" placeholder="whole feed / newest 400 videos"></label>
+  </div>
+  <div class="field-row">
+    <label>Keep in the database<input type="number" name="keep" min="1" max="10000" value="{{if .S.Keep}}{{.S.Keep}}{{end}}" placeholder="everything"><small>Newest per channel.</small></label>
+    <label>Read further back, default depth<input type="number" name="deep_depth" min="1" max="5000" required value="{{.S.DeepDepth}}"></label>
+    <label>Video quality<select name="quality">{{$q := .S.Quality}}
+      <option value="audio" {{if eq $q "audio"}}selected{{end}}>Audio only</option>
+      <option value="480" {{if eq $q "480"}}selected{{end}}>480p</option>
+      <option value="720" {{if eq $q "720"}}selected{{end}}>720p</option>
+      <option value="1080" {{if eq $q "1080"}}selected{{end}}>1080p</option></select><small>For streaming and app downloads.</small></label>
+  </div>
+  <div class="field-row">
+    <label>Refreshes at once<input type="number" name="refreshes" min="1" max="8" required value="{{.S.Refreshes}}"></label>
+    <label>Streams at once<input type="number" name="streams" min="1" max="16" required value="{{.S.Streams}}"><small>Downloader engine and ffmpeg processes.</small></label>
+    <label>Status history kept (days)<input type="number" name="history_days" min="1" max="90" required value="{{.S.HistoryDays}}"></label>
+  </div>
+  <div class="field-row">
+    <label>Media cache size (GB)<input type="number" name="cache_gb" min="1" max="1000" required value="{{.S.CacheGB}}"><small>Videos fetched for playing and for the app's downloads. Over this, the files used longest ago go first.</small></label>
+    <label>Media cache time (hours)<input type="number" name="cache_hours" min="1" max="168" required value="{{.S.CacheHours}}"><small>A file not used for this long is dropped, and so is one whose episode is played.</small></label>
+  </div>
+  <div class="actions end"><button class="btn-primary btn-sm">Save</button></div>
+  </fieldset>
+</form>
+<form method="post" action="/logout" hx-boost="false" class="section"><button class="btn-sm">{{template "icon" "logout"}}Sign out</button></form>
+{{end}}
+{{template "bottom" .}}

@@ -1,0 +1,46 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="channelhead">
+  {{if .C.Artwork}}<img class="channel-art" src="{{.C.Artwork}}" alt="">{{end}}
+  <div class="grow">
+    <h1>{{.C.Name}}</h1>
+    <p class="muted">{{with .C.Author}}{{.}} · {{end}}{{.Total}} episodes held · {{.Unplayed}} not done{{if eq .C.Kind "video"}} · video{{end}}</p>
+    {{with .C.Tags}}<div class="chips">{{range .}}<a class="chip" href="/podcasts?tag={{.}}">#{{.}}</a>{{end}}</div>{{end}}
+  </div>
+</div>
+<div class="actions wrap section">
+  <form method="post" action="/channels/{{.C.ID}}/check"><button class="btn-sm">{{template "icon" "refresh"}}Check now</button></form>
+  <details class="menu"><summary class="btn btn-sm">{{template "icon" "clock"}}Read further back</summary><div class="popover-panel">
+    <form method="post" action="/channels/{{.C.ID}}/readback">
+      <label>How many episodes<input type="number" name="depth" min="1" max="5000" value="{{.Set.DeepDepth}}"></label>
+      <small class="muted">Runs once, as its own job. Episodes beyond "Keep in the database" ({{if .Eff.Keep}}{{.Eff.Keep}}{{else}}everything{{end}}) are still dropped afterwards, so raise that first if you want them all.</small>
+      <button class="btn-sm btn-primary btn-block">Read</button>
+    </form>
+  </div></details>
+  <a href="/channels/{{.C.ID}}/settings" class="btn btn-sm">{{template "icon" "settings"}}Settings</a>
+  <a href="/episodes?q={{printf "$channel = @%d" .C.ID | urlquery}}" class="btn btn-sm btn-ghost">{{template "icon" "episodes"}}In Episodes</a>
+  <form method="post" action="/channels/{{.C.ID}}/mark-played"><button class="btn-sm btn-ghost" data-confirm="Mark every episode of this podcast played?">{{template "icon" "check"}}Mark all played</button></form>
+  <form method="post" action="/channels/{{.C.ID}}/unfollow"><button class="btn-sm btn-ghost btn-danger" data-confirm="Unfollow? Its episodes and play states are removed; playlists are kept.">{{template "icon" "trash"}}Unfollow</button></form>
+</div>
+<div id="channel-state" {{if .Running}}hx-get="/channels/{{.C.ID}}" hx-trigger="every 2s" hx-target="this" hx-select="#channel-state" hx-swap="outerHTML"{{end}}>
+{{if .Running}}<div class="card card-pad banner"><span class="pulse"></span> {{if .C.Retrieving}}Being retrieved: the first read is running.{{else}}A read is running or waiting. <a href="/status">See Status</a>.{{end}}</div>{{end}}
+{{with .C.LastError}}<div class="card card-pad banner-bad"><strong>The last read failed:</strong> <span class="err-text">{{.}}</span></div>{{end}}
+<section class="card section">
+  <dl class="kv">
+    <dt>Address</dt><dd class="mono wrap">{{.C.URL}}</dd>
+    {{with .C.Website}}<dt>Website</dt><dd><a href="{{.}}" target="_blank" rel="noopener">{{.}}</a></dd>{{end}}
+    <dt>Last checked</dt><dd>{{ago .C.LastChecked}}</dd>
+    <dt>Next check</dt><dd>{{if .C.NextCheck.IsZero}}soon{{else}}{{ago .C.NextCheck}}{{end}}</dd>
+    <dt>Check every</dt><dd>{{dur .Eff.CheckEvery}}{{if not .C.CheckEvery}} <span class="faint">(server default)</span>{{end}}</dd>
+    <dt>Fetch</dt><dd>{{if .Eff.FetchCount}}newest {{.Eff.FetchCount}}{{else}}whole feed{{end}}{{if not .C.FetchCount}} <span class="faint">(server default)</span>{{end}}</dd>
+    <dt>Keep</dt><dd>{{if .Eff.Keep}}newest {{.Eff.Keep}}{{else}}everything{{end}}{{if not .C.Keep}} <span class="faint">(server default)</span>{{end}}</dd>
+  </dl>
+  {{with .C.Description}}<p class="muted small clamp">{{.}}</p>{{end}}
+</section>
+<ul class="card list eps">
+{{range .Rows}}{{template "eprow" .}}{{else}}<li class="card-foot-empty">No episodes yet.</li>{{end}}
+</ul>
+{{if gt .Total (len .Rows)}}<p class="center"><a class="btn btn-sm" href="/channels/{{.C.ID}}?all=1">Show all {{.Total}}</a></p>{{end}}
+</div>
+{{end}}
+{{template "bottom" .}}

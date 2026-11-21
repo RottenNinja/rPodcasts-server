@@ -1,0 +1,28 @@
+# An example to copy: fill in the password and master key, then `docker compose up -d --build`.
+# `docker compose run --rm rPodcasts password` prints a fresh password and key.
+# Everything else is set in the web UI under Settings → Server.
+services:
+  rPodcasts:
+    build: .
+    image: podcasts:latest
+    restart: unless-stopped
+    environment:
+      # Required: the sign-in password.
+      PODCASTS_PASSWORD: ""
+      # Required: 32 random bytes as 64 hex digits or base64; signs sessions and stream links and encrypts feed passwords.
+      PODCASTS_MASTER_KEY: ""
+      # Set to "true" when the server is behind HTTPS.
+      PODCASTS_SECURE_COOKIE: "true"
+      # Optional downloader engine for video channels, downloaded from this address on start if it is missing.
+      PODCASTS_ENGINE_URL: ""
+      # The command of an engine installed by hand; empty uses the downloaded one beside the database.
+      PODCASTS_ENGINE: ""
+      # Set to "true" to reach addresses on your own network, such as a media server at home.
+      PODCASTS_ALLOW_LOCAL_NETWORK: "false"
+      # The engine is run as `list {url} {limit}`, `video {url}`, `resolve {url} {quality}`, …; set PODCASTS_ENGINE_ARGS_LIST, _ARTWORK, _VIDEO, _RESOLVE, _VERSION and _UPDATE to change that: see ENGINE.md.
+      # The engine runs with the server's permissions: only use one you trust, at your own risk.
+    ports:
+      - "8484:8484"
+    volumes:
+      - ./volumes/state:/data/state
+

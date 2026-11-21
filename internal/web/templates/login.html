@@ -1,0 +1,12 @@
+{{template "top" .}}
+<div class="login">
+  <div class="brand"><span class="logo">{{template "icon" "mic"}}</span>Podcasts</div>
+  <div class="card card-pad">
+    <h1>Sign in</h1>
+    <form method="post" action="/login" hx-boost="false">
+      <label>Password<input type="password" name="password" autocomplete="current-password" required autofocus></label>
+      <button type="submit" class="btn-primary btn-block">Sign in</button>
+    </form>
+  </div>
+</div>
+{{template "bottom" .}}

@@ -1,0 +1,74 @@
+{{template "top" .}}
+{{with .Data}}
+{{$video := eq .E.Media "video"}}
+<div class="epage{{if $video}} is-video{{end}}" data-episode-page="{{.E.ID}}" data-from="{{.Context}}" data-position="{{.Position}}" data-duration="{{.E.Duration}}" data-speed="{{.Speed}}"{{if .Start}} data-start="{{.Start}}"{{end}}>
+  <div class="epage-bar">
+    <form method="post" action="/episodes/{{.E.ID}}/action"><input type="hidden" name="return" value="{{.Back}}">
+      <button class="iconbtn{{if .P.Starred}} starred{{end}}" name="action" value="{{if .P.Starred}}unstar{{else}}star{{end}}" title="{{if .P.Starred}}Unstar{{else}}Star{{end}}">{{template "icon" "star"}}</button>
+    </form>
+    <details class="menu"><summary class="iconbtn" title="More">{{template "icon" "more"}}</summary><div class="popover-panel menu-list">
+      <form method="post" action="/episodes/{{.E.ID}}/action"><input type="hidden" name="return" value="{{.Back}}">
+        {{if .P.Played}}<button class="menu-item" name="action" value="unplayed">Mark unplayed</button>
+        {{else}}<button class="menu-item" name="action" value="played">Mark played</button>
+        <button class="menu-item{{if not .P.Position}} current-only{{end}}" name="action" value="unplayed">Reset progress</button>{{end}}
+        <button class="menu-item" name="action" value="older-played">Mark older played</button>
+      </form>
+      {{with .E.PageURL}}<a class="menu-item" href="{{.}}" target="_blank" rel="noopener">Web page</a>{{end}}
+      {{with .E.TranscriptURL}}<a class="menu-item" href="{{.}}" target="_blank" rel="noopener">Transcript</a>{{end}}
+      <button type="button" class="menu-item" data-copy-time="{{.E.ID}}"><span>Copy link at current time</span></button>
+      <label class="menu-item current-only">Sleep timer<select class="pill" data-player="sleep">{{template "sleepopts"}}</select></label>
+      <button type="button" class="menu-item current-only" data-player="close">Stop playing</button>
+      <p class="faint small menu-note">Download is in the app.</p>
+    </div></details>
+  </div>
+  {{if $video}}
+  <div class="stage">
+    <div class="stage-pic">
+      {{if .Art}}<img class="stage-poster" src="{{.Art}}" alt="">{{end}}
+      <button class="stage-play" data-player="toggle" title="{{if .Position}}Resume{{else}}Play{{end}}">{{template "icon" "play"}}</button>
+      <button class="stage-next next-offer" data-player="next-done" title="Mark this one played and play the next" hidden>Next episode</button>
+    </div>
+    {{template "transport" true}}
+  </div>
+  {{else}}
+  <div class="stage-art">{{if .Art}}<img src="{{.Art}}" alt="">{{else}}{{template "icon" "headphones"}}{{end}}</div>
+  {{end}}
+  <div class="epage-meta">
+    <h1>{{.E.Title}}</h1>
+    <a class="epage-channel" href="/channels/{{.C.ID}}">{{.C.Name}}</a>
+    <p class="muted small">{{date .E.Published}}{{with length .E.Duration}} · {{.}}{{end}}{{if $video}} · video{{end}}{{if .E.Season}} · season {{.E.Season}}{{end}}{{if .E.Number}} · episode {{.E.Number}}{{end}}{{if ne .E.Type "full"}} · {{.E.Type}}{{end}}{{if .P.Played}} · played{{else if .P.Position}}<span class="idle-only"> · stopped at {{clock .P.Position}}</span>{{end}}</p>
+    {{template "playernotes"}}
+  </div>
+  {{if not $video}}{{template "transport" false}}{{end}}
+  <div class="epage-more">
+    <div class="seg" role="tablist">
+      <button type="button" role="tab" data-tab="notes"{{if not .Notes}} disabled{{end}}>Show notes</button>
+      <button type="button" role="tab" data-tab="chapters"{{if not .HasChapters}} disabled{{end}}>Chapters</button>
+      {{if .Next}}<button type="button" role="tab" data-tab="next">Up next</button>{{end}}
+    </div>
+    <div class="prose notes" data-panel="notes" data-episode="{{.E.ID}}" hidden>{{.Notes}}</div>
+    {{if .HasChapters}}<ol class="chapters nolist" data-panel="chapters" data-chapters="{{.E.ID}}" hidden><li class="faint">Loading…</li></ol>{{end}}
+    {{if .Next}}<ul class="list eps" data-panel="next" hidden>{{range .Next}}{{template "eprow" .}}{{end}}</ul>{{end}}
+  </div>
+</div>
+{{end}}
+{{template "bottom" .}}
+
+{{define "transport"}}
+<div class="transport">
+  <input type="range" min="0" max="1000" value="0" data-player="seek" aria-label="Seek">
+  <div class="transport-times">
+    <span data-slot="pos">0:00</span>
+    <select class="pill current-need" data-player="speed" title="Speed" disabled>{{template "speedopts"}}</select>
+    <span data-slot="left">0:00</span>
+  </div>
+  <div class="transport-row">
+    <button class="iconbtn current-need" data-player="prev-chapter" title="Previous chapter" hidden disabled>{{template "icon" "prev"}}</button>
+    <button class="iconbtn iconbtn-lg current-need" data-player="back" title="Skip back (←)" disabled>{{template "icon" "rewind"}}</button>
+    <button class="playbtn" data-player="toggle" title="Play or pause (space)"><span class="when-paused">{{template "icon" "play"}}</span><span class="when-playing">{{template "icon" "pause"}}</span><span class="when-loading spinner"></span></button>
+    <button class="iconbtn iconbtn-lg current-need" data-player="forward" title="Skip forward (→)" disabled>{{template "icon" "forward"}}</button>
+    <button class="iconbtn current-need" data-player="next-chapter" title="Next chapter" hidden disabled>{{template "icon" "next"}}</button>
+    {{if .}}<button class="iconbtn current-need transport-full" data-player="fullscreen" title="Full screen (F)" disabled>{{template "icon" "expand"}}</button>{{end}}
+  </div>
+</div>
+{{end}}

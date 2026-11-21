@@ -1,0 +1,26 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead">
+  <div><h1>{{.P.Name}}</h1>
+  <p class="muted">{{.NotDone}} not done of {{.Total}}{{if .Filter}} · <code>{{.Filter}}</code>{{else}} · every episode{{end}}</p></div>
+  <div class="actions">
+    {{if .StartID}}<button class="btn-primary btn-sm" data-play="{{.StartID}}" data-from="{{.Context}}">{{template "icon" "play"}}Play</button>{{end}}
+    {{if .Shuffle}}<form method="post" action="/playlists/{{.P.ID}}/reshuffle"><button class="btn btn-sm" title="Put the episodes in a new shuffled order" data-confirm="Reshuffle this playlist? The current order can't be brought back.">Reshuffle</button></form>{{end}}
+    <a href="/playlists/{{.P.ID}}/edit" class="btn btn-sm">{{template "icon" "edit"}}Settings</a>
+    <details class="menu"><summary class="btn btn-sm btn-ghost">More</summary><div class="popover-panel">
+      <form method="post" action="/playlists/{{.P.ID}}/mark"><input type="hidden" name="value" value="played"><button class="btn-ghost btn-sm btn-block" data-confirm="Mark every episode in this playlist played?">Mark all played</button></form>
+      <form method="post" action="/playlists/{{.P.ID}}/mark"><input type="hidden" name="value" value="unplayed"><button class="btn-ghost btn-sm btn-block">Mark all unplayed</button></form>
+      <form method="post" action="/playlists/{{.P.ID}}/fix-dates"><button class="btn-ghost btn-sm btn-block" title="Open each video without an exact date for its real date">Fix dates</button></form>
+      <form method="post" action="/playlists/{{.P.ID}}/delete"><button class="btn-ghost btn-danger btn-sm btn-block" data-confirm="Delete this playlist? Episodes are not affected.">{{template "icon" "trash"}}Delete</button></form>
+    </div></details>
+  </div>
+</div>
+{{if .Manual}}<p class="muted small">Drag episodes to put them in your order. Episodes you haven't placed go last.</p>{{end}}
+<ul class="card list eps" {{if .Manual}}data-sortable="/playlists/{{.P.ID}}/order"{{end}}>
+{{range .Rows}}{{template "eprow" .}}{{else}}<li class="card-foot-empty">{{if .Hidden}}Nothing left to play.{{else}}No episodes match this playlist.{{end}}</li>{{end}}
+</ul>
+{{if lt .Showing .Listed}}<p class="center"><a href="/playlists/{{.P.ID}}?all=1{{if .Played}}&amp;played=1{{end}}" class="btn btn-sm">Show all {{.Listed}}</a></p>{{end}}
+{{if .Hidden}}<p class="center muted small">{{.Hidden}} played {{if eq .Hidden 1}}episode is{{else}}episodes are{{end}} hidden. <a href="/playlists/{{.P.ID}}?played=1">Show played</a></p>{{end}}
+{{if .Played}}<p class="center muted small"><a href="/playlists/{{.P.ID}}">Hide played</a></p>{{end}}
+{{end}}
+{{template "bottom" .}}

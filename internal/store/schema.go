@@ -1,0 +1,137 @@
+package store
+
+const schema = `
+CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+INSERT OR IGNORE INTO meta (k, v) VALUES ('seq', '0');
+CREATE TABLE IF NOT EXISTS settings (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS channels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  url TEXT NOT NULL UNIQUE,
+  kind TEXT NOT NULL DEFAULT 'feed',
+  title TEXT NOT NULL DEFAULT '',
+  title_own INTEGER NOT NULL DEFAULT 0,
+  author TEXT NOT NULL DEFAULT '',
+  website TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  artwork TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '',
+  speed INTEGER NOT NULL DEFAULT 100,
+  skip_start INTEGER NOT NULL DEFAULT 0,
+  skip_end INTEGER NOT NULL DEFAULT 0,
+  quality TEXT NOT NULL DEFAULT '',
+  check_every INTEGER NOT NULL DEFAULT 0,
+  fetch_count INTEGER NOT NULL DEFAULT 0,
+  keep INTEGER NOT NULL DEFAULT 0,
+  username TEXT NOT NULL DEFAULT '',
+  password BLOB,
+  etag TEXT NOT NULL DEFAULT '',
+  last_modified TEXT NOT NULL DEFAULT '',
+  last_checked INTEGER NOT NULL DEFAULT 0,
+  next_check INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT NOT NULL DEFAULT '',
+  retrieving INTEGER NOT NULL DEFAULT 1,
+  created INTEGER NOT NULL,
+  seq INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS episodes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id INTEGER NOT NULL,
+  guid TEXT NOT NULL DEFAULT '',
+  media_url TEXT NOT NULL DEFAULT '',
+  page_url TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  published INTEGER NOT NULL DEFAULT 0,
+  date_quality INTEGER NOT NULL DEFAULT 0,
+  duration INTEGER NOT NULL DEFAULT 0,
+  media TEXT NOT NULL DEFAULT 'audio',
+  mime TEXT NOT NULL DEFAULT '',
+  size INTEGER NOT NULL DEFAULT 0,
+  season INTEGER NOT NULL DEFAULT 0,
+  number INTEGER NOT NULL DEFAULT 0,
+  type TEXT NOT NULL DEFAULT 'full',
+  artwork TEXT NOT NULL DEFAULT '',
+  chapters_url TEXT NOT NULL DEFAULT '',
+  chapters TEXT NOT NULL DEFAULT '',
+  transcript_url TEXT NOT NULL DEFAULT '',
+  created INTEGER NOT NULL,
+  seq INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS episodes_channel ON episodes (channel_id, published);
+CREATE INDEX IF NOT EXISTS episodes_guid ON episodes (channel_id, guid);
+CREATE INDEX IF NOT EXISTS episodes_seq ON episodes (seq);
+
+CREATE TABLE IF NOT EXISTS plays (
+  episode_id INTEGER PRIMARY KEY,
+  position INTEGER NOT NULL DEFAULT 0,
+  played INTEGER NOT NULL DEFAULT 0,
+  starred INTEGER NOT NULL DEFAULT 0,
+  position_at INTEGER NOT NULL DEFAULT 0,
+  played_at INTEGER NOT NULL DEFAULT 0,
+  starred_at INTEGER NOT NULL DEFAULT 0,
+  seq INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS plays_seq ON plays (seq);
+
+CREATE TABLE IF NOT EXISTS playlists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  filter TEXT NOT NULL DEFAULT '',
+  sort TEXT NOT NULL DEFAULT 'newest',
+  pos REAL NOT NULL DEFAULT 0,
+  builtin TEXT NOT NULL DEFAULT '',
+  autoplay INTEGER NOT NULL DEFAULT 0,
+  hide_played INTEGER NOT NULL DEFAULT 0,
+  seed INTEGER NOT NULL DEFAULT 0,
+  seq INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS playlist_items (
+  playlist_id INTEGER NOT NULL,
+  episode_id INTEGER NOT NULL,
+  pos REAL NOT NULL,
+  seq INTEGER NOT NULL,
+  PRIMARY KEY (playlist_id, episode_id)
+);
+
+CREATE TABLE IF NOT EXISTS devices (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  created INTEGER NOT NULL,
+  last_sync INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS tombstones (
+  kind TEXT NOT NULL,
+  ref TEXT NOT NULL,
+  seq INTEGER NOT NULL,
+  PRIMARY KEY (kind, ref)
+);
+
+CREATE TABLE IF NOT EXISTS jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL,
+  channel_id INTEGER NOT NULL DEFAULT 0,
+  label TEXT NOT NULL DEFAULT '',
+  reason TEXT NOT NULL DEFAULT '',
+  depth INTEGER NOT NULL DEFAULT 0,
+  state TEXT NOT NULL,
+  queued INTEGER NOT NULL,
+  started INTEGER NOT NULL DEFAULT 0,
+  finished INTEGER NOT NULL DEFAULT 0,
+  added INTEGER NOT NULL DEFAULT 0,
+  updated INTEGER NOT NULL DEFAULT 0,
+  pruned INTEGER NOT NULL DEFAULT 0,
+  not_modified INTEGER NOT NULL DEFAULT 0,
+  summary TEXT NOT NULL DEFAULT '',
+  error TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS jobs_finished ON jobs (finished);
+
+-- Renames the old update jobs and engine info to the downloader engine's.
+UPDATE jobs SET kind = 'engine-update', label = 'Downloader engine update' WHERE kind GLOB 'yt*-update';
+UPDATE OR IGNORE settings SET k = 'engine' WHERE k GLOB 'yt*';
+`

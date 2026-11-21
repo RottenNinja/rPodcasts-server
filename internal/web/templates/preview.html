@@ -1,0 +1,28 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead"><h1>Add a podcast</h1></div>
+<section class="card narrow section">
+  <div class="channelhead card-pad">
+    {{if .P.Artwork}}<img class="channel-art" src="{{.P.Artwork}}" alt="" referrerpolicy="no-referrer">{{end}}
+    <div class="grow">
+      <h2>{{or .P.Title .P.URL}}</h2>
+      <p class="muted">{{with .P.Author}}{{.}} · {{end}}{{if .P.Episodes}}{{.P.Episodes}} episodes · {{end}}{{if eq .P.Media "audio"}}Audio{{else if eq .P.Media "video"}}Video{{else}}Audio and video{{end}}</p>
+      <p class="faint small mono wrap">{{.P.URL}}</p>
+    </div>
+  </div>
+  {{with .P.Description}}<p class="muted small clamp">{{.}}</p>{{end}}
+</section>
+{{if .P.Following}}
+<div class="card card-pad banner narrow">You already follow this podcast. <a href="/channels/{{.P.Following}}">Open it</a></div>
+<div class="actions end narrow"><a href="/podcasts/add{{if .Term}}{{qs "q" .Term "tag" .Tags}}{{else}}{{qs "tab" "manual" "url" .URL "tag" .Tags}}{{end}}" class="btn btn-ghost">Back</a></div>
+{{else}}
+<form method="post" action="/podcasts/add" class="card card-pad narrow">
+  <input type="hidden" name="url" value="{{.URL}}"><input type="hidden" name="username" value="{{.Username}}"><input type="hidden" name="password" value="{{.Password}}">
+  <label>Name<input name="title" value="{{.P.Title}}" maxlength="200"><small>Change it if the address's own name doesn't say what this is. Reads keep your name.</small></label>
+  <label>Tags<input name="tags" value="{{.Tags}}" autofocus placeholder="news tech" {{template "tag-attrs"}}><small>Pick one or type a new one. Group podcasts into playlists with <code>#tag</code>.</small></label>
+  {{template "tag-suggest" .AllTags}}
+  <div class="actions end"><a href="/podcasts/add{{if .Term}}{{qs "q" .Term "tag" .Tags}}{{else}}{{qs "tab" "manual" "url" .URL "tag" .Tags}}{{end}}" class="btn btn-ghost">Back</a><button class="btn-primary">Follow</button></div>
+</form>
+{{end}}
+{{end}}
+{{template "bottom" .}}

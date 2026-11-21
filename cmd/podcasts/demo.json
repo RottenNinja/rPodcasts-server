@@ -1,0 +1,22 @@
+{
+  "channels": [
+    {"url": "https://2.5admins.com/feed/podcast", "tags": "linux selfhosted tech"},
+    {"url": "https://feeds.fireside.fm/asknoah/rss", "tags": "linux selfhosted tech"},
+    {"url": "https://www.theaverageguy.tv/feed/hggvideosmall/", "tags": "selfhosted tech video"},
+    {"url": "https://podcast.thelinuxexp.com/@tlenewspodcast/feed.xml", "tags": "linux news tech"},
+    {"url": "https://feeds.fireside.fm/linuxactionnews/rss", "tags": "linux news tech"},
+    {"url": "https://linuxafterdark.net/feed/podcast", "tags": "linux tech"},
+    {"url": "https://feeds.jupiterbroadcasting.com/lup", "tags": "linux tech"},
+    {"url": "https://feeds.twit.tv/sn_video_hd.xml", "tags": "security tech video"},
+    {"url": "https://feeds.fireside.fm/selfhosted/rss", "tags": "selfhosted linux tech"},
+    {"url": "https://rss2.flightcast.com/pmgqiszts7kfhopzaq8el6yw.xml", "tags": "dev tech"},
+    {"url": "https://feeds.megaphone.fm/LMG3928170156", "tags": "news tech"},
+    {"url": "https://feeds.twit.tv/uls.xml", "tags": "linux news tech"}
+  ],
+  "playlists": [
+    {"name": "Self-hosting", "filter": "#selfhosted $unplayed", "sort": "shuffle"},
+    {"name": "Linux", "filter": "#linux", "sort": "shuffle"},
+    {"name": "News", "filter": "#news $unplayed", "sort": "shuffle"},
+    {"name": "Tech < an hour", "filter": "#tech $unplayed $length < 1h", "sort": "shuffle"}
+  ]
+}

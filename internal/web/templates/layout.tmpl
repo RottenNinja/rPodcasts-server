@@ -1,0 +1,102 @@
+{{define "top"}}{{if not .Boosted}}<!doctype html>
+<html lang="en" data-theme="{{.Theme}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>{{.Title}} · Podcasts</title>
+<link rel="icon" type="image/svg+xml" href="{{asset "favicon.svg"}}">
+<link rel="stylesheet" href="{{asset "app.css"}}">
+<script src="{{asset "vendor/htmx.min.js"}}" defer></script>
+<script src="{{asset "app.js"}}" defer></script>
+</head>
+<body hx-boost="true" hx-target="#page" hx-swap="outerHTML show:window:top" class="{{if eq .Nav "login"}}bare{{else}}app{{end}}">
+{{if ne .Nav "login"}}
+<aside class="sidebar">
+  <a href="/" class="brand"><span class="logo">{{template "icon" "mic"}}</span>Podcasts</a>
+  <nav class="sidenav">{{template "navlinks" .}}</nav>
+  <div class="sidebar-foot">
+    <form method="post" action="/logout" hx-boost="false"><button class="navlink">{{template "icon" "logout"}}Sign out</button></form>
+  </div>
+</aside>
+<header class="mobilebar">
+  <a href="/" class="brand"><span class="logo">{{template "icon" "mic"}}</span>Podcasts</a>
+</header>
+<nav class="tabbar">{{template "navlinks" .}}</nav>
+{{end}}
+<div hx-history-elt>
+{{end}}<main id="page" class="page" data-title="{{.Title}} · Podcasts" data-nav="{{.Nav}}">
+{{if .Crumbs}}<nav class="crumbs" aria-label="Breadcrumbs">{{range .Crumbs}}<a href="{{.Href}}">{{.Label}}</a><span class="sep">/</span>{{end}}<span class="here">{{.Title}}</span></nav>
+<a class="back-link" href="{{(index .Crumbs (add (len .Crumbs) -1)).Href}}">{{template "icon" "back"}}{{(index .Crumbs (add (len .Crumbs) -1)).Label}}</a>{{end}}
+<div id="toasts">
+{{if .Flash}}<div class="toast toast-ok" role="status">{{template "icon" "check"}}<span>{{.Flash}}</span></div>{{end}}
+{{if .Error}}<div class="toast toast-err" role="alert">{{template "icon" "x"}}<span>{{.Error}}</span></div>{{end}}
+</div>
+{{end}}
+
+{{define "bottom"}}
+</main>{{if not .Boosted}}
+</div>
+{{if ne .Nav "login"}}{{template "player"}}{{end}}
+</body>
+</html>{{end}}
+{{end}}
+
+{{define "navlinks"}}
+<a href="/" class="navlink" data-nav="playlists">{{template "icon" "list"}}<span>Playlists</span></a>
+<a href="/podcasts" class="navlink" data-nav="podcasts">{{template "icon" "grid"}}<span>Podcasts</span></a>
+<a href="/episodes" class="navlink" data-nav="episodes">{{template "icon" "episodes"}}<span>Episodes</span></a>
+<a href="/status" class="navlink" data-nav="status">{{template "icon" "pulse"}}<span>Status</span>{{template "badge" .}}</a>
+<a href="/settings" class="navlink" data-nav="settings">{{template "icon" "settings"}}<span>Settings</span></a>
+{{end}}
+
+
+{{define "player"}}
+<footer id="player" class="player" hidden>
+  {{template "playernotes"}}
+  <div class="player-main">
+    <a class="player-art" data-slot="link"><img data-slot="art" alt=""><span class="player-dock"><video id="media" playsinline preload="metadata"></video></span></a>
+    <div class="player-info">
+      <a class="player-title" data-slot="link"><span data-slot="title"></span></a>
+      <span class="player-sub" data-slot="channel"></span>
+    </div>
+    <div class="player-controls">
+      <button class="iconbtn" data-player="prev-chapter" title="Previous chapter" hidden>{{template "icon" "prev"}}</button>
+      <button class="iconbtn" data-player="back" title="Skip back">{{template "icon" "rewind"}}</button>
+      <button class="playbtn" data-player="toggle" title="Play or pause (space)"><span class="when-paused">{{template "icon" "play"}}</span><span class="when-playing">{{template "icon" "pause"}}</span><span class="when-loading spinner"></span></button>
+      <button class="iconbtn" data-player="forward" title="Skip forward">{{template "icon" "forward"}}</button>
+      <button class="iconbtn" data-player="next-chapter" title="Next chapter" hidden>{{template "icon" "next"}}</button>
+    </div>
+    <div class="player-extra">
+      <select class="pill" data-player="speed" title="Speed">{{template "speedopts"}}</select>
+      <select class="pill" data-player="sleep" title="Sleep timer">{{template "sleepopts"}}</select>
+      <button class="iconbtn" data-player="close" title="Stop playing">{{template "icon" "x"}}</button>
+    </div>
+  </div>
+  <div class="player-seek"><span data-slot="pos">0:00</span><input type="range" min="0" max="1000" value="0" data-player="seek" aria-label="Seek"><span data-slot="dur">0:00</span></div>
+</footer>
+{{end}}
+
+{{define "playernotes"}}
+<div class="player-notice" hidden><span>Up next: <b data-slot="next"></b></span><button class="linkbtn" data-player="next-now">Play now</button><button class="linkbtn" data-player="next-skip">Don't play it</button></div>
+<div class="next-offer" hidden><button class="btn-primary btn-sm" data-player="next-done" title="Mark this one played and play the next">Next: <b data-slot="next"></b></button></div>
+<div class="player-error" hidden><span data-slot="error"></span><a data-slot="page" target="_blank" rel="noopener">Web page</a></div>
+{{end}}
+
+{{define "speedopts"}}<option value="50">0.5×</option><option value="75">0.75×</option><option value="90">0.9×</option><option value="100" selected>1.0×</option><option value="110">1.1×</option><option value="125">1.25×</option><option value="150">1.5×</option><option value="175">1.75×</option><option value="200">2.0×</option><option value="250">2.5×</option><option value="300">3.0×</option>{{end}}
+
+{{define "sleepopts"}}<option value="">Sleep off</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="end">End of episode</option>{{end}}
+
+{{define "eprow"}}
+<li class="ep{{if .Played}} is-played{{end}}" data-id="{{.ID}}">
+  <img class="ep-art" src="{{.Artwork}}" alt="" loading="lazy">
+  <a class="ep-main" href="/episodes/{{.ID}}{{if .Context}}?from={{.Context}}{{end}}">
+    <span class="ep-title">{{if .Starred}}<span class="star">★</span>{{end}}{{.Title}}</span>
+    <span class="ep-sub">{{.Channel}} · {{date .Published}}{{with length .Duration}} · {{.}}{{end}}{{if eq .Media "video"}} · video{{end}}{{if .Season}} · S{{.Season}}{{end}}{{if .Number}}E{{.Number}}{{end}}{{if ne .Type "full"}}{{if .Type}} · {{.Type}}{{end}}{{end}}{{if .Played}} · played{{else if .Position}} · {{length .Left}} left{{end}}</span>
+    {{if and .Progress (not .Played)}}<span class="ep-progress"><i style="width:{{.Progress}}%"></i></span>{{end}}
+  </a>
+  <span class="ep-side">
+    <button class="btn-ghost btn-icon btn-sm" data-play="{{.ID}}" data-from="{{.Context}}" title="Play">{{template "icon" "play"}}</button>
+  </span>
+</li>
+{{end}}

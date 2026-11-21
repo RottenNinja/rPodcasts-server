@@ -1,0 +1,20 @@
+{{template "top" .}}
+<div class="pagehead"><div><h1>Tags</h1><p class="muted">Tags group podcasts; a playlist with <code>#tag</code> plays them together. Renaming a tag updates every podcast and filter that uses it.</p></div></div>
+{{range .Data}}
+<section class="card section">
+  <div class="card-head">
+    <h2>#{{.Name}}</h2>
+    <div class="actions">
+      <form method="post" action="/tags/rename" class="inline"><input type="hidden" name="from" value="{{.Name}}"><input name="to" value="{{.Name}}" aria-label="New name" required class="input-sm"><button class="btn-sm">Rename</button></form>
+      <form method="post" action="/tags/playlist"><input type="hidden" name="tag" value="{{.Name}}"><button class="btn-sm btn-ghost">{{template "icon" "list"}}Make a playlist</button></form>
+    </div>
+  </div>
+  <div class="card-body">
+    <p><span class="res-label">Podcasts</span>{{range $i, $c := .Channels}}{{if $i}}, {{end}}<a href="/channels/{{$c.ID}}">{{$c.Name}}</a>{{end}}</p>
+    <p><span class="res-label">Playlists</span>{{range $i, $p := .Playlists}}{{if $i}}, {{end}}<a href="/playlists/{{$p.ID}}">{{$p.Name}}</a>{{else}}<span class="faint">none</span>{{end}}</p>
+  </div>
+</section>
+{{else}}
+<div class="card empty">{{template "icon" "tag"}}<strong>No tags yet</strong><span>Add tags when you follow a podcast or in its settings.</span></div>
+{{end}}
+{{template "bottom" .}}

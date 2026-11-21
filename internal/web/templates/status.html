@@ -1,0 +1,100 @@
+{{template "top" .}}
+<div class="pagehead"><div><h1>Status</h1><p class="muted">Everything running in the background, while it runs and afterwards.</p></div></div>
+{{template "live" .Data}}
+{{template "bottom" .}}
+
+
+{{define "live"}}
+<div id="status-live" hx-get="/status/live{{if .Failures}}?failed=1{{end}}" hx-trigger="{{if .Live}}every 2s{{else}}every 15s{{end}}" hx-target="this" hx-swap="outerHTML">
+<section class="card section">
+  <div class="card-head"><h2>Now</h2></div>
+  <ul class="list">
+  {{range .Runs}}
+    <li class="row"><span class="row-main">
+      <span class="row-title">{{.Label}} <span class="faint">· {{.Kind}} · {{.Reason}}</span></span>
+      <span class="row-sub"><span class="pulse"></span> {{.Stage}}{{if .Total}} {{.Done}}/{{.Total}}{{end}} · {{dur .Elapsed}}</span>
+      {{if .Total}}<span class="bar"><i style="width:{{.Percent}}%"></i></span>{{end}}
+    </span><span class="row-side"><form method="post" action="/status/jobs/{{.JobID}}/cancel"><button class="btn-sm btn-ghost btn-danger">Cancel</button></form></span></li>
+  {{else}}<li class="card-foot-empty">Nothing running.</li>{{end}}
+  </ul>
+</section>
+<section class="card section">
+  <div class="card-head"><h2>Streams</h2></div>
+  <ul class="list">
+  {{range .Streams}}
+    <li class="row"><span class="row-main"><a class="row-title" href="/episodes/{{.EpisodeID}}">{{.Title}}</a>
+      <span class="row-sub">{{.Mode}} · {{.Client}} · {{bytes .Bytes}} sent · {{dur .Elapsed}}</span></span>
+      <span class="row-side"><form method="post" action="/status/streams/{{.ID}}/stop"><button class="btn-sm btn-ghost btn-danger">Stop</button></form></span></li>
+  {{else}}<li class="card-foot-empty">No streams.</li>{{end}}
+  </ul>
+</section>
+{{if .Ended}}
+<section class="card section">
+  <div class="card-head"><h2>Recent streams</h2></div>
+  <ul class="list">
+  {{range $i, $x := .Ended}}
+    <li class="row{{if ge $i 4}} extra{{end}}"><span class="row-main"><a class="row-title" href="/episodes/{{.EpisodeID}}">{{.Title}}</a>
+      <span class="row-sub">{{.Mode}}{{if .Offset}} from {{.Offset}}s{{end}} · {{.Client}} · {{bytes .Bytes}} sent · {{dur .Elapsed}} · {{ago .Ended}}</span>
+      {{if .Err}}<span class="row-snippet err-text">{{.Err}}</span>{{end}}</span></li>
+  {{end}}
+  </ul>
+  {{if gt (len .Ended) 4}}{{template "more" "ended"}}{{end}}
+</section>
+{{end}}
+{{if .Queued}}
+<section class="card section">
+  <div class="card-head"><h2>Queued</h2></div>
+  <ul class="list">
+  {{range $i, $x := .Queued}}<li class="row{{if ge $i 4}} extra{{end}}"><span class="row-main"><span class="row-title">{{.Label}} <span class="faint">· {{.Kind}} · {{.Reason}}</span></span><span class="row-sub">waiting {{ago .Queued}}</span></span>
+    <span class="row-side"><form method="post" action="/status/jobs/{{.ID}}/cancel"><button class="btn-sm btn-ghost">Cancel</button></form></span></li>{{end}}
+  </ul>
+  {{if gt (len .Queued) 4}}{{template "more" "queued"}}{{end}}
+</section>
+{{end}}
+<section class="card section">
+  <div class="card-head"><h2>Storage</h2></div>
+  <div class="card-body usage">
+    <p><strong>{{bytes .Cache.Bytes}}</strong> <span class="faint small">of {{.Settings.CacheGB}} GB · {{.Cache.Files}} {{if eq .Cache.Files 1}}file{{else}}files{{end}} held in the media cache</span></p>
+    <p class="faint small">Kept {{.Settings.CacheHours}} h after last use</p>
+    <span class="bar"><i style="width:{{.CachePercent}}%"></i></span>
+  </div>
+</section>
+<section class="card section">
+  <div class="card-head"><h2>Housekeeping</h2><form method="post" action="/status/engine"><button class="btn-sm">{{template "icon" "refresh"}}Update downloader engine now</button></form></div>
+  <dl class="kv card-body">
+    <dt>Downloader engine version</dt><dd>{{or .Engine.Version "not run yet"}}</dd>
+    <dt>Last self-update</dt><dd>{{ago .Engine.LastUpdate}}</dd>
+    {{with .EngineJob}}<dt>That update</dt><dd>{{template "state" .State}} {{or .Summary .Error}}</dd>{{end}}
+  </dl>
+  <p class="faint small card-body">The downloader engine updates itself on its first run each day. Videos are fetched into the media cache as they are played or downloaded, so seeking is quick, a download can resume and other devices get the same file without fetching it again. The app's own downloads and sync show in the app's Status page.</p>
+</section>
+<section class="card section">
+  <div class="card-head"><h2>Up next</h2></div>
+  <ul class="list">
+  {{range $i, $x := .UpNext}}<li class="row{{if ge $i 4}} extra{{end}}"><span class="row-main"><a class="row-title" href="/channels/{{.ID}}">{{.Name}}</a><span class="row-sub">{{if .NextCheck.IsZero}}due now{{else}}{{ago .NextCheck}}{{end}} · every {{dur .Every}}</span></span>
+    <span class="row-side"><form method="post" action="/channels/{{.ID}}/check"><button class="btn-sm btn-ghost">Check now</button></form></span></li>
+  {{else}}<li class="card-foot-empty">Nothing followed.</li>{{end}}
+  {{if .MoreNext}}<li class="card-foot-empty extra">and {{.MoreNext}} more</li>{{end}}
+  </ul>
+  {{if gt (len .UpNext) 4}}{{template "more" "next"}}{{end}}
+</section>
+<section class="card section">
+  <div class="card-head"><h2>History</h2>
+    <nav class="tabs small"><a href="/status" {{if not .Failures}}aria-current="page"{{end}}>All</a><a href="/status?failed=1" {{if .Failures}}aria-current="page"{{end}}>Failures only</a></nav></div>
+  <ul class="list">
+  {{range $i, $x := .History}}
+    <li class="row{{if ge $i 4}} extra{{end}}"><span class="row-main">
+      <span class="row-title">{{template "state" .State}} {{.Label}} <span class="faint">· {{.Kind}} · {{.Reason}}</span></span>
+      <span class="row-sub">{{ago .Finished}} · took {{dur .Took}}{{with .Summary}} · {{.}}{{end}}</span>
+      {{with .Error}}<span class="row-snippet err-text">{{.}}</span>{{end}}
+    </span>{{if and (eq .State "failed") (ne .Kind "fix-dates")}}<span class="row-side"><form method="post" action="/status/jobs/{{.ID}}/retry"><button class="btn-sm">Retry</button></form></span>{{end}}</li>
+  {{else}}<li class="card-foot-empty">No runs yet.</li>{{end}}
+  </ul>
+  {{if gt (len .History) 4}}{{template "more" "history"}}{{end}}
+</section>
+</div>
+{{end}}
+
+{{define "state"}}<span class="status s-{{.}}"><i></i>{{.}}</span>{{end}}
+
+{{define "more"}}<label class="more"><input type="checkbox" id="more-{{.}}"><span class="more-closed">Show more</span><span class="more-open">Show fewer</span></label>{{end}}

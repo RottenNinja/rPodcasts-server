@@ -1,0 +1,35 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead"><h1>Add a podcast</h1></div>
+<nav class="tabs"><a href="/podcasts/add{{qs "tag" .Tag}}" {{if not .Manual}}aria-current="page"{{end}}>{{template "icon" "search"}}Search</a><a href="/podcasts/add{{qs "tab" "manual" "tag" .Tag}}" {{if .Manual}}aria-current="page"{{end}}>{{template "icon" "link"}}Manual</a></nav>
+{{if .Manual}}
+<form method="post" action="/podcasts/add/preview" class="card card-pad narrow checks">
+  <label>Address<input name="url" value="{{.URL}}" required autofocus class="mono" placeholder="https://example.com/feed.xml" inputmode="url">
+    <small>A feed, a podcast's website (the feed it links to is followed), or a page of videos such as a channel or playlist.</small></label>
+  <input type="hidden" name="tags" value="{{.Tag}}">
+  <details class="plain"><summary>Private feed</summary><div>
+    <div class="field-row"><label>User name<input name="username" autocomplete="off"></label><label>Password<input name="password" type="password" autocomplete="new-password"></label></div>
+    <small class="muted">Sent as HTTP Basic and stored encrypted.</small>
+  </div></details>
+  <div class="actions end"><small class="muted grow checking">Reading the address…</small><a href="/podcasts" class="btn btn-ghost">Cancel</a><button class="btn-primary">Next</button></div>
+</form>
+{{else}}
+<form method="get" action="/podcasts/add" class="card card-pad narrow">
+  {{if .Tag}}<input type="hidden" name="tag" value="{{.Tag}}">{{end}}
+  <label>Podcast<input type="search" name="q" value="{{.Term}}" required autofocus maxlength="200" placeholder="A title or an author">
+    <small>Searches Apple's podcast directory from this server. Pick a result to see it before you follow it.</small></label>
+  <div class="actions end"><a href="/podcasts" class="btn btn-ghost">Cancel</a><button class="btn-primary">{{template "icon" "search"}}Search</button></div>
+</form>
+{{if .Found}}
+<ul class="card list narrow found">
+{{$tag := .Tag}}{{$term := .Term}}
+{{range .Found}}
+  <li><a class="row checks" href="/podcasts/add/preview{{qs "url" .URL "tags" $tag "q" $term}}"><img class="ep-art" src="{{.Artwork}}" alt="" loading="lazy" referrerpolicy="no-referrer"><span class="row-main"><span class="row-title">{{.Title}}</span><span class="row-sub">{{.Author}}{{if and .Author .Episodes}} · {{end}}{{if .Episodes}}{{.Episodes}} episodes{{end}}</span></span><small class="muted checking">Reading…</small></a></li>
+{{end}}
+</ul>
+{{else if and .Term (not .Failed)}}
+<div class="card empty narrow">{{template "icon" "search"}}<strong>Nothing found for “{{.Term}}”</strong><span class="muted small">Try fewer words, or add it by its address under Manual.</span></div>
+{{end}}
+{{end}}
+{{end}}
+{{template "bottom" .}}

@@ -1,0 +1,34 @@
+{{template "top" .}}
+{{with .Data}}{{$c := .C}}
+<div class="pagehead"><h1>Podcast settings</h1></div>
+<form method="post" action="/channels/{{$c.ID}}/settings" class="card card-pad narrow">
+  <label>Name<input name="title" value="{{$c.Title}}" maxlength="200"><small>Empty goes back to the address's own name at the next read.</small></label>
+  <label>Tags<input name="tags" value="{{join $c.Tags " "}}" {{template "tag-attrs"}}><small>Pick one or type a new one, split by spaces; <code>#</code> optional.</small></label>
+  {{template "tag-suggest" .AllTags}}
+  <div class="field-row">
+    <label>Speed (%)<input type="number" name="speed" min="50" max="300" value="{{$c.Speed}}"></label>
+    <label>Skip the first (s)<input type="number" name="skip_start" min="0" max="3600" value="{{$c.SkipStart}}"></label>
+    <label>Skip the last (s)<input type="number" name="skip_end" min="0" max="3600" value="{{$c.SkipEnd}}"></label>
+  </div>
+  {{if .Video}}<div class="field-row">
+    <label>Video quality<select name="quality">
+      <option value="" {{if not $c.Quality}}selected{{end}}>Default ({{if eq .Set.Quality "audio"}}audio only{{else}}{{.Set.Quality}}p{{end}})</option>
+      <option value="audio" {{if eq $c.Quality "audio"}}selected{{end}}>Audio only</option>
+      <option value="480" {{if eq $c.Quality "480"}}selected{{end}}>480p</option>
+      <option value="720" {{if eq $c.Quality "720"}}selected{{end}}>720p</option>
+      <option value="1080" {{if eq $c.Quality "1080"}}selected{{end}}>1080p</option></select><small>For streaming and app downloads. A podcast's own videos are made smaller on the server when they are larger than this.</small></label>
+  </div>{{else}}<input type="hidden" name="quality" value="{{$c.Quality}}">{{end}}
+  <h3 class="sub">Reading <small class="faint">empty uses the server default</small></h3>
+  <div class="field-row">
+    <label>Check every (min)<input type="number" name="check_every" min="15" max="10080" value="{{if $c.CheckEvery}}{{$c.CheckEvery}}{{end}}" placeholder="{{.Set.CheckEvery}}"></label>
+    <label>How many to fetch<input type="number" name="fetch_count" min="1" max="1000" value="{{if $c.FetchCount}}{{$c.FetchCount}}{{end}}" placeholder="{{if .Set.FetchCount}}{{.Set.FetchCount}}{{else}}whole feed{{end}}"></label>
+    <label>Keep in the database<input type="number" name="keep" min="1" max="10000" value="{{if $c.Keep}}{{$c.Keep}}{{end}}" placeholder="{{if .Set.Keep}}{{.Set.Keep}}{{else}}everything{{end}}"><small>Starred and part-played are always kept.</small></label>
+  </div>
+  <details class="plain" {{if $c.Username}}open{{end}}><summary>Private feed</summary><div>
+    <div class="field-row"><label>User name<input name="username" value="{{$c.Username}}" autocomplete="off"></label><label>Password<input name="password" type="password" autocomplete="new-password" placeholder="{{if $c.Password}}unchanged{{end}}"></label></div>
+    {{if $c.Password}}<label class="check"><input type="checkbox" name="clear_password" value="1"> Remove the stored password</label>{{end}}
+  </div></details>
+  <div class="actions end"><a href="/channels/{{$c.ID}}" class="btn btn-ghost">Cancel</a><button class="btn-primary">Save</button></div>
+</form>
+{{end}}
+{{template "bottom" .}}

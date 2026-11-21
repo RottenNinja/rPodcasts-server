@@ -1,0 +1,31 @@
+{{template "top" .}}
+<div class="pagehead">
+  <h1>Playlists</h1>
+  <div class="actions"><a href="/playlists/new" class="btn btn-primary btn-sm">{{template "icon" "plus"}}New playlist</a></div>
+</div>
+{{with .Data}}
+{{if and .Empty (not .Playlists)}}
+<div class="card card-pad narrow start">
+  <h2>Start by following a podcast</h2>
+  <p class="muted">Playlists are made from the podcasts you follow, so this page fills up once you follow one.</p>
+  <ol class="steps">
+    <li><strong>Follow a podcast</strong><span>Search for it by title or author, or paste the address of a feed or of a page of videos.</span><a href="/podcasts/add" class="btn btn-primary btn-sm">{{template "icon" "plus"}}Add a podcast</a></li>
+    <li><strong>Your playlists appear here</strong><span>The first follow makes All, New, In progress, All audio, All video and Starred. A playlist is a saved filter over everything you follow, so new episodes turn up in it by themselves.</span></li>
+    <li><strong>Make them your own</strong><span>Give podcasts tags such as #news, turn a tag into a playlist on the Podcasts page, and choose in the app which playlists a device downloads.</span></li>
+  </ol>
+  <p class="muted small">Coming from another app? Import its OPML file under <a href="/podcasts">Podcasts</a>.</p>
+</div>
+{{else}}
+{{if .Empty}}<div class="card empty">{{template "icon" "mic"}}<strong>Nothing followed yet</strong><span>Search for a podcast, or add one by its address.</span><a href="/podcasts/add" class="btn btn-primary btn-sm">{{template "icon" "plus"}}Add a podcast</a></div>{{end}}
+{{if .Playlists}}<label class="find">{{template "icon" "search"}}<input type="search" placeholder="Find a playlist" aria-label="Find a playlist" data-find="#playlist-list" autocomplete="off"></label>{{end}}
+<ul class="card list" id="playlist-list" data-sortable="/playlists/move">
+  <li class="card-foot-empty" data-find-none hidden>No playlist matches.</li>
+{{range .Playlists}}
+  <li data-id="{{.ID}}" data-name="{{.Name}}" draggable="true"><a class="row" href="/playlists/{{.ID}}"><span class="handle" title="Drag to reorder">{{template "icon" "drag"}}</span><span class="row-main"><span class="row-title">{{.Name}}</span>{{if .Broken}}<span class="row-sub err-text">The filter needs fixing</span>{{end}}</span><span class="row-side"><b class="num">{{.NotDone}}</b></span></a></li>
+{{else}}
+  <li class="card-foot-empty">No playlists. They're created on your first follow, or <a href="/playlists/new">make one</a>.</li>
+{{end}}
+</ul>
+{{end}}
+{{end}}
+{{template "bottom" .}}

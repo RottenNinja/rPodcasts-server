@@ -1,0 +1,22 @@
+{{define "filter-field"}}
+<div class="filter-field">
+  <label>Filter <small class="faint">Empty matches every episode. E.g. <code>#news AND !$played AND $length &lt; 1h</code></small>
+    <input name="filter" value="{{.}}" class="mono" autocomplete="off" spellcheck="false" data-filter-input
+      hx-get="/filter/check" hx-trigger="input changed delay:250ms, load" hx-target="next .filter-check" hx-swap="innerHTML" hx-select="unset">
+  </label>
+  <div class="filter-check" aria-live="polite"></div>
+  <div class="filter-help">
+    <button type="button" class="btn-sm btn-ghost" data-options="channel">$channel…</button>
+    <button type="button" class="btn-sm btn-ghost" data-options="tag">#tag…</button>
+    <details class="plain"><summary>Keys and operators</summary><div class="small muted">
+      <p><code>$title</code> <code>$channel</code> <code>$length</code> <code>$published</code> <code>$media</code> <code>$season</code> <code>$number</code> <code>$type</code> <code>$left</code> · yes or no: <code>$unplayed</code> <code>$played</code> <code>$inprogress</code> <code>$starred</code> <code>$downloaded</code> <code>$playlist</code> · <code>#tag</code> · <code>$season</code> alone means it has one · a plain word searches titles and podcast names.</p>
+      <p><code>= : != &gt; &lt; &gt;= &lt;=</code> · <code>~</code> contains · <code>^:</code> starts with · <code>$:</code> ends with · <code>!</code> not, <code>AND</code> (or a space), <code>OR</code>, <code>( )</code>.</p>
+      <p>Durations <code>30min 2h 3d 2w 6mo 1y</code> · dates <code>2026-10-07 14 oct fri next fri today yesterday now</code> · <code>$published &gt;= -7d</code> means the last week.</p>
+    </div></details>
+  </div>
+  <div class="options-box" hidden></div>
+</div>
+{{end}}
+{{define "badge"}}<span class="badge-slot" hx-get="/status/badge" hx-trigger="every 3s" hx-target="this" hx-swap="outerHTML">{{if .Busy}}<b class="count">{{.Busy}}</b>{{end}}{{if .Failed}}<i class="dot-bad" title="The last run failed"></i>{{end}}</span>{{end}}
+{{define "tag-attrs"}}data-tag-input autocomplete="off" autocapitalize="none" spellcheck="false"{{end}}
+{{define "tag-suggest"}}{{if .}}<div class="chips tag-suggest" hidden>{{range .}}<button type="button" class="chip" data-tag="{{.}}">#{{.}}</button>{{end}}</div>{{end}}{{end}}

@@ -1,0 +1,15 @@
+{{template "top" .}}
+<div class="pagehead"><div><h1>Devices</h1><p class="muted">Each signed-in copy of the app. Download settings live on each device. Forget revokes its token.</p></div></div>
+{{if .Data.Demo}}
+<div class="card empty">{{template "icon" "device"}}<strong>Devices are hidden on the demo server</strong><span>Their names would show who signed in.</span></div>
+{{else}}
+{{range .Data.Devices}}
+<div class="card section">
+  <div class="card-head"><h2>{{template "icon" "device"}}{{.Name}}</h2><span class="muted small">last synced {{ago .LastSync}}</span></div>
+  <form method="post" action="/devices/{{.ID}}/forget" class="card-body"><button class="btn-sm btn-ghost btn-danger" data-confirm="Forget this device? It must sign in again.">{{template "icon" "trash"}}Forget</button></form>
+</div>
+{{else}}
+<div class="card empty">{{template "icon" "device"}}<strong>No devices yet</strong><span>Sign in from the app with this server's address and password.</span></div>
+{{end}}
+{{end}}
+{{template "bottom" .}}

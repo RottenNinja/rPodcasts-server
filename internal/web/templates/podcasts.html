@@ -1,0 +1,45 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead">
+  <h1>Podcasts</h1>
+  <div class="actions">
+    <form method="post" action="/podcasts/check-all"><button class="btn-sm">{{template "icon" "refresh"}}Check all now</button></form>
+    <a href="/tags" class="btn btn-sm">{{template "icon" "tag"}}Tags</a>
+    <details class="menu"><summary class="btn btn-sm">OPML</summary><div class="popover-panel">
+      <form method="post" action="/podcasts/opml" enctype="multipart/form-data" hx-boost="false">
+        <label>Import a file<input type="file" name="file" accept=".opml,.xml,text/xml" required></label>
+        <button class="btn-sm btn-block">{{template "icon" "upload"}}Import</button>
+      </form>
+      <a href="/podcasts/opml" hx-boost="false" class="btn btn-sm btn-block">{{template "icon" "download"}}Export</a>
+    </div></details>
+    <a href="/podcasts/add" class="btn btn-primary btn-sm">{{template "icon" "plus"}}Add a podcast</a>
+  </div>
+</div>
+{{if .Total}}
+<label class="find">{{template "icon" "search"}}<input type="search" placeholder="Find a podcast" aria-label="Find a podcast" data-find="#podcast-grid" autocomplete="off"></label>
+{{end}}
+{{if .Tags}}
+<div class="toolbar">
+  {{if .Tags}}<div class="chips">{{$t := .Tag}}<a href="/podcasts" class="chip {{if not $t}}on{{end}}">All</a>{{range .Tags}}<a href="/podcasts{{qs "tag" .}}" class="chip {{if eq . $t}}on{{end}}">#{{.}}</a>{{end}}</div>{{end}}
+  {{if .Tag}}<form method="post" action="/tags/playlist"><input type="hidden" name="tag" value="{{.Tag}}"><button class="btn-sm btn-ghost">{{template "icon" "list"}}Make a playlist</button></form>{{end}}
+</div>
+{{end}}
+{{template "podcast-grid" .}}
+{{end}}
+{{template "bottom" .}}
+
+{{define "podcast-grid"}}
+<div id="podcast-grid" {{if .Live}}hx-get="/podcasts{{qs "tag" .Tag}}" hx-trigger="every 2s" hx-target="this" hx-select="#podcast-grid" hx-swap="outerHTML"{{end}}>
+{{if not .Cards}}<div class="card empty">{{template "icon" "mic"}}<strong>{{if .Total}}No podcasts here{{else}}Nothing followed yet{{end}}</strong><a href="/podcasts/add" class="btn btn-primary btn-sm">{{template "icon" "plus"}}Add a podcast</a></div>{{end}}
+<p class="muted" data-find-none hidden>No podcast matches.</p>
+<div class="grid">
+{{range .Cards}}
+  <a class="tile" href="/channels/{{.ID}}" data-name="{{.Name}}">
+    <span class="tile-art">{{if .Artwork}}<img src="{{.Artwork}}" alt="" loading="lazy">{{else}}<span class="tile-ph">{{template "icon" (or (and (eq .Kind "video") "video") "mic")}}</span>{{end}}{{if .Unplayed}}<b class="tile-count">{{.Unplayed}}</b>{{end}}</span>
+    <span class="tile-title">{{.Name}}</span>
+    <span class="tile-sub">{{if or .Retrieving .Running}}<span class="pulse"></span> being retrieved{{else if .LastError}}<span class="err-text">can't be read</span>{{else}}{{range .Tags}}#{{.}} {{end}}{{end}}</span>
+  </a>
+{{end}}
+</div>
+</div>
+{{end}}

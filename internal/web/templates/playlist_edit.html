@@ -1,0 +1,16 @@
+{{template "top" .}}
+{{with .Data}}
+<div class="pagehead"><h1>{{if .P.ID}}Playlist settings{{else}}New playlist{{end}}</h1></div>
+<form method="post" action="{{if .P.ID}}/playlists/{{.P.ID}}{{else}}/playlists{{end}}" class="card card-pad narrow">
+  <label>Name<input name="name" required maxlength="120" value="{{.P.Name}}" autofocus></label>
+  {{template "filter-field" .Filter}}
+  <label>Show
+    <select name="sort">{{$s := .P.Sort}}{{range .Sorts}}<option value="{{.Key}}" {{if eq .Key $s}}selected{{end}}>{{.Label}}</option>{{end}}</select>
+  </label>
+  <label class="check"><input type="checkbox" name="hide_played" value="1" {{if .P.HidePlayed}}checked{{end}}><input type="hidden" name="hide_played" value="0">Hide played episodes<small>They stay in the playlist, so <code>!$playlist</code> doesn't pick them up; the list just leaves them out.</small></label>
+  <label class="check"><input type="checkbox" name="autoplay" value="1" {{if .P.Autoplay}}checked{{end}}> Automatically play next episode</label>
+  <p class="muted small">How devices treat this playlist (stream or download, and how many) is set per device under <a href="/devices">Devices</a>.</p>
+  <div class="actions end"><a href="{{if .P.ID}}/playlists/{{.P.ID}}{{else}}/{{end}}" class="btn btn-ghost">Cancel</a><button class="btn-primary">Save</button></div>
+</form>
+{{end}}
+{{template "bottom" .}}
